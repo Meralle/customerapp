@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var path = require('path');
 var ejs = require('ejs');
+var expressValidator = require('express-validator');
 
 var app = express();
 
@@ -25,6 +26,30 @@ app.use(bodyParser.urlencoded({extended:false}));
 
 //Set static path
 app.use(express.static(path.join(__dirname, 'public')));
+
+//Global Vars
+app.use((req, res, next) => {
+	res.locals.errors = null;
+	next();
+})
+
+//Express Vaidator Middleware
+app.use(expressValidator({
+  errorFormatter: function(param, msg, value) {
+      var namespace = param.split('.')
+      , root    = namespace.shift()
+      , formParam = root;
+
+    while(namespace.length) {
+      formParam += '[' + namespace.shift() + ']';
+    }
+    return {
+      param : formParam,
+      msg   : msg,
+      value : value
+    };
+  }
+}));
 var users = [
 	{	
 		id:1,
@@ -55,11 +80,31 @@ app.get('/', (req, res) => {
 });
 
 app.post('/users/add', (req, res) => {
-	var newUser = {
-		first_name: req.body.first_name,
-		last_name: req.body.last_name,
-		email: req.body.email
+
+	req.checkBody('first_name', 'First Name is Required').notEmpty();
+	req.checkBody('last_name', 'Last Name is Required').notEmpty();
+	req.checkBody('email', 'Email is Required').notEmpty();
+
+	var errors = req.validationErrors();
+	if(errors){
+		console.log(errors);
+		res.render('index.ejs',{
+			title:'Customers',
+			users:users,
+			errors:errors
+		});
+		
+	} else {
+		var newUser = {
+			first_name: req.body.first_name,
+			last_name: req.body.last_name,
+			email: req.body.email
+		}
+
+		console.log('SUCCESS');
+
 	}
+	
 	console.log(newUser);
 })
 app.listen(3000, function(){
