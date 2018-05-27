@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var path = require('path');
 var ejs = require('ejs');
+require('dotenv').config();
 var expressValidator = require('express-validator');
 
 var app = express();
@@ -15,9 +16,6 @@ var app = express();
 //view Engine
 app.set('view engine', 'esj');
 app.set('views', path.join(__dirname, 'views'));
-
-
-
 
 
 //Body Parser Middleware
@@ -102,11 +100,10 @@ app.post('/users/add', (req, res) => {
 		}
 
 		console.log('SUCCESS');
-
 	}
 	
-	console.log(newUser);
+		console.log(newUser);
 })
-app.listen(3000, function(){
-	console.log('server started on port 3000');
+	app.listen(process.env.PORT, () => {
+		console.log('server started on port 3000');
 })
